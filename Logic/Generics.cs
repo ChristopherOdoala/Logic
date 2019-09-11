@@ -22,7 +22,7 @@ namespace Logic
         
         public static int Unique<T>(this int[] sequence, int[] comparer)
         {
-            if (comparer != null)
+            if (comparer.Count() > 0)
             {
                 foreach (var set in comparer)
                 {
@@ -53,16 +53,21 @@ namespace Logic
         public static List<int> UniqueList<T>(this int[] sequence, int[] comparer)
         {
             var result = new List<int> { };
-            foreach(var seq in sequence)
+            if (comparer.Count() > 0)
             {
-                foreach(var comp in comparer)
+                foreach (var comp in comparer)
                 {
-                    var res = Equals(seq, comp);
-                    if (!res)
-                        result.Add(seq);
+                    foreach (var seq in sequence)
+                    {
+                        var res = Equals(seq, comp);
+                        if (!res)
+                            result.Add(seq);
+                    }
                 }
+                return result;
             }
-            return result;
+            
+            return sequence.ToList();
         }
 
     }

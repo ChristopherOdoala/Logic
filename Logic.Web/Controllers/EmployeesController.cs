@@ -33,10 +33,6 @@ namespace Logic.Web.Controllers
             {
                 if (TheRepository.Insert(employee) && TheRepository.SaveAll())
                 {
-                    //ToDo add employeeid
-                    var result = _statusService.CreateInitialStatus(new Guid());
-                    if (result.Count() > 0)
-                        return BadRequest("Employee Status could not be created");
                     return Ok();
                 }
             }

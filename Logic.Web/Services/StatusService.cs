@@ -84,6 +84,9 @@ namespace Logic.Web.Services
         public List<ValidationResult> CreateInitialStatus(Guid employeeId)
         {
             ValidationLevel validLvl;
+            if (InitialState().Item1 == 0)
+                return InitialState().Item2;
+
             var value = InitialState().Item1.ToString();
             Enum.TryParse(value, out validLvl);
             var finalStage = EnumList().UniqueList<int[]>(ListOfExempted()).Last();
@@ -91,7 +94,7 @@ namespace Logic.Web.Services
             {
                 CurrentStage = validLvl,
                 NoOfStages = NoOfStages(),
-                ListOfExempted = ListOfExempted().ToString(),
+                ListOfExempted = GetListofExempted(),
                 EmployeeId = employeeId,
                 FinalStage = finalStage,
                 NoOfExempted = NoOfExempted()

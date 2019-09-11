@@ -31,6 +31,7 @@ namespace Logic.Web.Controllers
                          where e.Status == false && (int)s.CurrentStage == (int)ValidationLevel.Third_Party_Validation
                          select new
                          {
+                             Id = e.Id,
                              Name = e.Name,
                              Address = e.Address
                          });
@@ -43,6 +44,7 @@ namespace Logic.Web.Controllers
         }
 
         [HttpPost]
+        [Route("{employeeId}")]
         public IActionResult Validate(Guid employeeId)
         {
             try

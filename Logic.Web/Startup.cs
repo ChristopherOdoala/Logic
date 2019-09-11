@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Logic.Data;
 using Logic.Web.Services;
+using Logic.Web.Services.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -33,8 +34,8 @@ namespace Logic.Web
 
             services.AddScoped<IRepository, Repository>();
             services.AddScoped<IStatusService, StatusService>();
+            services.AddScoped<IConfigSettingsService, ConfigSettingsService>();
             services.AddScoped<LogicDbContext, LogicDbContext>();
-            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

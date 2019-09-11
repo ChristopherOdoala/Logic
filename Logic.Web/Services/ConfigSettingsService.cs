@@ -1,4 +1,5 @@
 ﻿using Logic.Web.Services.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -9,15 +10,15 @@ namespace Logic.Web.Services
 {
     public class ConfigSettingsService : IConfigSettingsService
     {
-        private readonly AppSettings _appSettings;
+        IConfiguration _configuration;
         public string ListOfExempted { get; private set; }
         public string NoOfExempted { get; private set; }
 
-        public ConfigSettingsService(IOptions<AppSettings> appSettings)
+        public ConfigSettingsService(IConfiguration configuration)
         {
-            _appSettings = appSettings.Value;
-            ListOfExempted = _appSettings.ListOfExempted;
-            NoOfExempted = _appSettings.NoOfExempted;
+            this._configuration = configuration;
+            ListOfExempted = _configuration.GetValue<string>("AppSettings:ListOfExempted");
+            NoOfExempted = _configuration.GetValue<string>("AppSettings:NoOfExempted");
         }
     }
 }
