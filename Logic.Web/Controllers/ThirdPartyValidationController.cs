@@ -51,9 +51,9 @@ namespace Logic.Web.Controllers
             {
                 if (employeeId == null)
                     return BadRequest("Employee Id is null");
-                var employeeStatus = TheRepository.GetAllStatus().Where(x => x.EmployeeId == employeeId).FirstOrDefault();
+                var employeeStatus = TheRepository.GetAllStatus().Where(x => (x.EmployeeId == employeeId) && (x.CurrentStage == ValidationLevel.Third_Party_Validation)).FirstOrDefault();
                 if (employeeStatus == null)
-                    return BadRequest("Employee Status is null");
+                    return BadRequest("Employee Status is null or is not available for validation");
                 var statusResult = _statusService.UpdateToNextStatus(employeeStatus);
                 if (statusResult.Item1)
                 {
