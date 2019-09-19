@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using static Logic.Model.ViewModel.EmployeeViewModel;
 
 namespace Logic.Model
 {
@@ -22,5 +23,6 @@ namespace Logic.Model
         public Guid EmployeeId { get; set; }
         public Employee Employee { get; set; }
         public int FinalStage { get; set; }
+        public ValidationState Validation { get; set; }
     }
 }

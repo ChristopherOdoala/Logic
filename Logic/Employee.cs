@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using static Logic.Model.ViewModel.EmployeeViewModel;
 
 namespace Logic
 {

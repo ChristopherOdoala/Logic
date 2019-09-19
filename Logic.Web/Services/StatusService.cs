@@ -97,7 +97,8 @@ namespace Logic.Web.Services
                 ListOfExempted = GetListofExempted(),
                 EmployeeId = employeeId,
                 FinalStage = finalStage,
-                NoOfExempted = NoOfExempted()
+                NoOfExempted = NoOfExempted(),
+                Validation = Model.ViewModel.EmployeeViewModel.ValidationState.Pending
             };
             if (newStatus == null)
             {
@@ -157,7 +158,12 @@ namespace Logic.Web.Services
         {
             if (NextStatus(status).EqualsZero<int>())
             {
-                return new Tuple<bool, bool, List<ValidationResult>>(false,true, results);
+                status.Validation = Model.ViewModel.EmployeeViewModel.ValidationState.Approved;
+
+                if (_repo.Update(status) && _repo.SaveAll())
+                {
+                    return new Tuple<bool, bool, List<ValidationResult>>(false, true, results);
+                }
             }
 
             ValidationLevel validLvl;
@@ -182,6 +188,22 @@ namespace Logic.Web.Services
             return new Tuple<bool, bool, List<ValidationResult>>(false, false, results);
         }
 
-        
+        public List<ValidationResult> RejectValidation(Status status)
+        {
+            try
+            {
+                status.Validation = Model.ViewModel.EmployeeViewModel.ValidationState.Rejected;
+                if (_repo.Update(status) && _repo.SaveAll())
+                {
+                    return results;
+                }
+            }
+            catch(Exception ex)
+            {
+                results.Add(new ValidationResult("Couldnt Save to database"));
+            }
+
+            return results;
+        }
     }
 }
