@@ -85,5 +85,16 @@ namespace Logic.Web.Controllers
 
             return BadRequest("Something went wrong");
         }
+
+        //public IActionResult Reject(Guid employeeId)
+        //{
+        //    try
+        //    {
+        //        var employee = TheRepository.GetAllStatus().Where(x => x.EmployeeId == employeeId).FirstOrDefault();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //    }
+        //}
     }
 }
