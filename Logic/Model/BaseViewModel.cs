@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -28,7 +28,6 @@ namespace Logic.Model
 
         public virtual List<string> ErrorList { get; set; }
 
-        [JsonIgnore]
         public Guid Created_Id { get; set; }
     }
 
