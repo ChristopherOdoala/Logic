@@ -37,7 +37,7 @@ namespace Logic
 
         static DocumentType[] documentTypes = new DocumentType[] { DocumentType.Insurance, DocumentType.MOT};
         static DocumentType[] documentTypes2 = new DocumentType[] { DocumentType.MOT, DocumentType.VehicleRegistration, DocumentType.Insurance};
-        static ApiValidationStatus[] documentTypes3 = new ApiValidationStatus[] { ApiValidationStatus.Passed, ApiValidationStatus.Passed};
+        static ApiValidationStatus[] documentTypes3 = new ApiValidationStatus[] { ApiValidationStatus.Passed, ApiValidationStatus.Passed, ApiValidationStatus.Passed, ApiValidationStatus.Failed};
 
         static void Main(string[] args)
         {
@@ -72,6 +72,7 @@ namespace Logic
             {
                 if (docArray[i] == ApiValidationStatus.Failed)
                 {
+                    i = documentTypes3.Count();
                     return false;
                 }
             }
