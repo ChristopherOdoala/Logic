@@ -36,6 +36,8 @@ namespace Logic.Web
             services.AddScoped<IStatusService, StatusService>();
             services.AddScoped<IConfigSettingsService, ConfigSettingsService>();
             services.AddScoped<LogicDbContext, LogicDbContext>();
+            services.AddScoped<IReadJson, ReadJson>();
+            services.AddScoped<ISearchGeolocation, SearchGeolocation>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

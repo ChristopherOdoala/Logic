@@ -41,16 +41,11 @@ namespace Logic
 
         static void Main(string[] args)
         {
-            if (DocumentCheck())
-            {
-                Console.WriteLine("Truck Request Passed");
-                Console.ReadLine();
-            }
-            else
-            {
-                Console.WriteLine("Truck Request Failed");
-                Console.ReadLine();
-            }
+            /** Remove sample **/
+            string founder = "Mahesh Chand is a founder of C# Corner!";
+            // Remove last character from a string  
+            string founderMinus1 = founder.Remove(founder.Length - 1, 1);
+            Console.WriteLine(founderMinus1);
         }
 
         
