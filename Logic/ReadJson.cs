@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using static Logic.ReadJson;
+using static Logic.SearchGeolocation;
 
 namespace Logic
 {
@@ -32,20 +33,15 @@ namespace Logic
         public bool IsGeofenceInfraction(List<Coordinates> Geofence, List<GeoLocations> GeoLocation, Coordinates currentLocation)
         {
             var currentGeoFence = _searchGeolocation.Compare(Geofence, GeoLocation);
-            var instance = new GeoLocations
+
+            for (int i = 0; i < currentGeoFence.Count(); i++)
             {
-                Coordinates = new List<Coordinates>
-                    {
-                        new Coordinates{ lat = currentLocation.lat, lng = currentLocation.lng}
-                    }
-            };
+                var value = _searchGeolocation.Check(currentGeoFence[i], currentLocation);
+                if (value != null)
+                    return false;
+            }
 
-            var res = currentGeoFence.Where(z => (z.Coordinates.First().lat >= currentLocation.lat || z.Coordinates.Last().lat <= currentLocation.lat) && (z.Coordinates[0].lng <= currentLocation.lng || z.Coordinates[1].lng >= currentLocation.lng)).FirstOrDefault();
-
-            if (res == null)
-                return true;
-
-            return false;
+            return true;
         }
 
 
@@ -290,26 +286,38 @@ namespace Logic
             List<GeoLocations> NewGeoLocation = new List<GeoLocations> { };
             List<Coordinates> coordinates = (List<Coordinates>)x;
             List<GeoLocations> geoLocations = (List<GeoLocations>)y;
+
             foreach (var coordinate in coordinates)
             {
-                var instance = new GeoLocations
+                GeoLocations value = null;
+                for (int i = 0; i < geoLocations.Count(); i++)
                 {
-                    Coordinates = new List<Coordinates>
-                    {
-                        new Coordinates{ lat = coordinate.lat, lng = coordinate.lng}
-                    }
-                };
-                var value = geoLocations.Where(z => (z.Coordinates.First().lat >= coordinate.lat || z.Coordinates.Last().lat <= coordinate.lat) && (z.Coordinates[0].lng <= coordinate.lng || z.Coordinates[1].lng >= coordinate.lng));
-                NewGeoLocation.AddRange(value);
+                    value = Check(geoLocations[i], coordinate);
+                    if (value != null)
+                        break;
+                }
+                NewGeoLocation.Add(value);
 
             }
 
             return NewGeoLocation;
+        }
+
+        public GeoLocations Check(GeoLocations geoLocate, Coordinates coordinate)
+        {
+            var maxLat = geoLocate.Coordinates[1].lat;
+            var minLat = geoLocate.Coordinates[3].lat;
+            var maxLng = geoLocate.Coordinates[1].lng;
+            var minLng = geoLocate.Coordinates[3].lng;
+            if ((maxLat >= coordinate.lat && coordinate.lat >= minLat) && (maxLng >= coordinate.lng && coordinate.lng >= minLng))
+                return geoLocate;
+            return null;
         }
     }
 
     public interface ISearchGeolocation
     {
         List<GeoLocations> Compare(object x, object y);
+        GeoLocations Check(GeoLocations geoLocate, Coordinates coordinate);
     }
 }
