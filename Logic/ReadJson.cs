@@ -49,8 +49,9 @@ namespace Logic
         }
 
 
-        public List<Coordinates> GeoFenceParameter(List<Coordinates> geofenceCoordinates)
+        public bool GeoFenceParameter(List<Coordinates> geofenceCoordinates, Coordinates currentLocation)
         {
+
             List<Coordinates> Geofence = new List<Coordinates> { };
 
             for (int i = 0; i < geofenceCoordinates.Count(); i++)
@@ -62,97 +63,173 @@ namespace Logic
                 var pointB = geofenceCoordinates[i+1];
                 if (pointA.lat < pointB.lat)
                     ComputeCoordinateTypeA(pointA, pointB, Geofence);
-                
                 else if (pointA.lat > pointB.lat)
                     ComputeCoordinateTypeB(pointA, pointB, Geofence);
+                else if (pointA.lat == pointB.lat)
+                    ComputeCoordinateTypeC(pointA, pointB, Geofence);
 
             }
 
-            return Geofence;
+            var res = IsGeofenceInfraction(Geofence, LoadJson(), currentLocation);
+
+            return res;
+        }
+
+        public void ComputeCoordinateTypeC(Coordinates pointA, Coordinates pointB, List<Coordinates> Geofence)
+        {
+            if(pointA.lng > pointB.lng)
+            {
+                var border = Distance(pointA.lat, pointA.lng, pointB.lat, pointB.lng, 'K');
+
+                //find the number of points of intersection using fixed interval
+                var noOfPoints = Math.Round(border / height, 0, MidpointRounding.AwayFromZero);
+
+                for (int j = 0; j < noOfPoints; j++)
+                {
+                    //find the new longitude of point in noOfPoints
+                    var newLong = (((height * (j + 1)) * 360) / (2 * Math.PI * Radius * Math.Cos(pointB.lat))) + pointB.lng;
+                    var coordinate = new Coordinates { lat = pointA.lat, lng = newLong };
+                    Geofence.Add(coordinate);
+                }
+            }
+            else if(pointB.lng > pointA.lng)
+            {
+                var border = Distance(pointA.lat, pointA.lng, pointB.lat, pointB.lng, 'K');
+
+                //find the number of points of intersection using fixed interval
+                var noOfPoints = Math.Round(border / height, 0, MidpointRounding.AwayFromZero);
+
+                for (int j = 0; j < noOfPoints; j++)
+                {
+                    //find the new longitude of point in noOfPoints
+                    var newLong = (((height * (j + 1)) * 360) / (2 * Math.PI * Radius * Math.Cos(pointB.lat))) + pointA.lng;
+                    var coordinate = new Coordinates { lat = pointA.lat, lng = newLong };
+                    Geofence.Add(coordinate);
+                }
+            }
+            
         }
 
         public void ComputeCoordinateTypeB(Coordinates pointA, Coordinates pointB, List<Coordinates> Geofence)
         {
-            var pointC = new Coordinates { lat = pointB.lat, lng = pointA.lng };
-            var initialAdj = Distance(pointC.lat, pointC.lng, pointB.lat, pointB.lng, 'K');
-            var initialHyp = Distance(pointA.lat, pointA.lng, pointB.lat, pointB.lng, 'K');
-            var initialOpp = Distance(pointA.lat, pointA.lng, pointC.lat, pointC.lng, 'K');
-
-            //find angle between Adj and Hyp
-            var radianAngleAdjHyp = Math.Acos(initialAdj / initialHyp);
-            var angleAdjHyp = rad2deg(radianAngleAdjHyp);
-
-            //find angle between opp and hyp
-            var radianAngleOppHyp = Math.Asin(initialOpp / initialHyp);
-            var angleOppHyp = rad2deg(radianAngleOppHyp);
-
-            //find the number of points of intersection using fixed interval
-            var noOfPoints = Math.Round(initialOpp / height, 0, MidpointRounding.AwayFromZero);
-
-            for (int j = 0; j < noOfPoints; j++)
+            if(pointA.lng == pointB.lng)
             {
-                TriangleNodes triangleNodes = new TriangleNodes
+                var border = Distance(pointA.lat, pointA.lng, pointB.lat, pointB.lng, 'K');
+
+                //find the number of points of intersection using fixed interval
+                var count = Math.Round(border / height, 0, MidpointRounding.AwayFromZero);
+
+                for (int j = 0; j < count; j++)
                 {
-                    NodeA = pointA,
-                    NodeB = pointB,
-                    NodeC = pointC
-                };
-
-                //finding the new latitude of point in noOfPoints
-                var newLat = (((height * (j + 1)) * 360) / (2 * Math.PI * Radius)) + triangleNodes.NodeA.lat;
-
-                //find the new length of the hyp
-                var newHyp = (initialOpp - (height * (j + 1)) / Math.Sin(angleOppHyp));
-                //find the new length of the adj
-                var newAdj = newHyp * Math.Cos(angleAdjHyp);
-
-                //find the new longitude of point in noOfPoints
-                var newLong = ((newAdj * 360) / (2 * Math.PI * Radius * Math.Cos(newLat))) + triangleNodes.NodeA.lng;
-                var coordinate = new Coordinates { lat = newLat, lng = newLong };
-                Geofence.Add(coordinate);
+                    //finding the new latitude of point in noOfPoints
+                    var newLat = (((height * (j + 1)) * 360) / (2 * Math.PI * Radius)) + pointB.lat;
+                    var coordinate = new Coordinates { lat = newLat, lng = pointA.lng };
+                    Geofence.Add(coordinate);
+                }
             }
+            else
+            {
+                var pointC = new Coordinates { lat = pointB.lat, lng = pointA.lng };
+                var initialAdj = Distance(pointC.lat, pointC.lng, pointB.lat, pointB.lng, 'K');
+                var initialHyp = Distance(pointA.lat, pointA.lng, pointB.lat, pointB.lng, 'K');
+                var initialOpp = Distance(pointA.lat, pointA.lng, pointC.lat, pointC.lng, 'K');
+
+                //find angle between Adj and Hyp
+                var radianAngleAdjHyp = Math.Acos(initialAdj / initialHyp);
+                var angleAdjHyp = rad2deg(radianAngleAdjHyp);
+
+                //find angle between opp and hyp
+                var radianAngleOppHyp = Math.Asin(initialOpp / initialHyp);
+                var angleOppHyp = rad2deg(radianAngleOppHyp);
+
+                //find the number of points of intersection using fixed interval
+                var noOfPoints = Math.Round(initialOpp / height, 0, MidpointRounding.AwayFromZero);
+
+                for (int j = 0; j < noOfPoints; j++)
+                {
+                    TriangleNodes triangleNodes = new TriangleNodes
+                    {
+                        NodeA = pointA,
+                        NodeB = pointB,
+                        NodeC = pointC
+                    };
+
+                    //finding the new latitude of point in noOfPoints
+                    var newLat = (((height * (j + 1)) * 360) / (2 * Math.PI * Radius)) + triangleNodes.NodeA.lat;
+
+                    //find the new length of the hyp
+                    var newHyp = (initialOpp - (height * (j + 1)) / Math.Sin(angleOppHyp));
+                    //find the new length of the adj
+                    var newAdj = newHyp * Math.Cos(angleAdjHyp);
+
+                    //find the new longitude of point in noOfPoints
+                    var newLong = ((newAdj * 360) / (2 * Math.PI * Radius * Math.Cos(newLat))) + triangleNodes.NodeA.lng;
+                    var coordinate = new Coordinates { lat = newLat, lng = newLong };
+                    Geofence.Add(coordinate);
+                }
+            }
+            
         }
 
         public void ComputeCoordinateTypeA(Coordinates pointA, Coordinates pointB, List<Coordinates> Geofence)
         {
-            var pointC = new Coordinates { lat = pointA.lat, lng = pointB.lng }; 
-             var initialAdj = Distance(pointA.lat, pointA.lng, pointC.lat, pointC.lng, 'K');
-            var initialHyp = Distance(pointA.lat, pointA.lng, pointB.lat, pointB.lng, 'K');
-            var initialOpp = Distance(pointC.lat, pointC.lng, pointB.lat, pointB.lng, 'K');
-
-            //find angle between Adj and Hyp
-            var radianAngleAdjHyp = Math.Acos(initialAdj / initialHyp);
-            var angleAdjHyp = rad2deg(radianAngleAdjHyp);
-
-            //find angle between opp and hyp
-            var radianAngleOppHyp = Math.Asin(initialOpp / initialHyp);
-            var angleOppHyp = rad2deg(radianAngleOppHyp);
-
-            //find the number of points of intersection using fixed interval
-            var noOfPoints = Math.Round(initialOpp / height, 0, MidpointRounding.AwayFromZero);
-
-            for (int j = 0; j < noOfPoints; j++)
+            if (pointA.lng == pointB.lng)
             {
-                TriangleNodes triangleNodes = new TriangleNodes
+                var border = Distance(pointA.lat, pointA.lng, pointB.lat, pointB.lng, 'K');
+
+                //find the number of points of intersection using fixed interval
+                var count = Math.Round(border / height, 0, MidpointRounding.AwayFromZero);
+
+                for (int j = 0; j < count; j++)
                 {
-                    NodeA = pointA,
-                    NodeB = pointB,
-                    NodeC = pointC
-                };
-
-                //finding the new latitude of point in noOfPoints
-                var newLat = (((height * (j + 1)) * 360) / (2 * Math.PI * Radius)) + triangleNodes.NodeA.lat;
-
-                //find the new length of the hyp
-                var newHyp = (initialOpp - (height * (j + 1)) / Math.Sin(angleOppHyp));
-                //find the new length of the adj
-                var newAdj = newHyp * Math.Cos(angleAdjHyp);
-
-                //find the new longitude of point in noOfPoints
-                var newLong = ((newAdj * 360) / (2 * Math.PI * Radius * Math.Cos(newLat))) + triangleNodes.NodeA.lng;
-                var coordinate = new Coordinates { lat = newLat, lng = newLong };
-                Geofence.Add(coordinate);
+                    //finding the new latitude of point in noOfPoints
+                    var newLat = (((height * (j + 1)) * 360) / (2 * Math.PI * Radius)) + pointB.lat;
+                    var coordinate = new Coordinates { lat = newLat, lng = pointA.lng };
+                    Geofence.Add(coordinate);
+                }
             }
+            else
+            {
+                var pointC = new Coordinates { lat = pointA.lat, lng = pointB.lng };
+                var initialAdj = Distance(pointA.lat, pointA.lng, pointC.lat, pointC.lng, 'K');
+                var initialHyp = Distance(pointA.lat, pointA.lng, pointB.lat, pointB.lng, 'K');
+                var initialOpp = Distance(pointC.lat, pointC.lng, pointB.lat, pointB.lng, 'K');
+
+                //find angle between Adj and Hyp
+                var radianAngleAdjHyp = Math.Acos(initialAdj / initialHyp);
+                var angleAdjHyp = rad2deg(radianAngleAdjHyp);
+
+                //find angle between opp and hyp
+                var radianAngleOppHyp = Math.Asin(initialOpp / initialHyp);
+                var angleOppHyp = rad2deg(radianAngleOppHyp);
+
+                //find the number of points of intersection using fixed interval
+                var noOfPoints = Math.Round(initialOpp / height, 0, MidpointRounding.AwayFromZero);
+
+                for (int j = 0; j < noOfPoints; j++)
+                {
+                    TriangleNodes triangleNodes = new TriangleNodes
+                    {
+                        NodeA = pointA,
+                        NodeB = pointB,
+                        NodeC = pointC
+                    };
+
+                    //finding the new latitude of point in noOfPoints
+                    var newLat = (((height * (j + 1)) * 360) / (2 * Math.PI * Radius)) + triangleNodes.NodeA.lat;
+
+                    //find the new length of the hyp
+                    var newHyp = (initialOpp - (height * (j + 1)) / Math.Sin(angleOppHyp));
+                    //find the new length of the adj
+                    var newAdj = newHyp * Math.Cos(angleAdjHyp);
+
+                    //find the new longitude of point in noOfPoints
+                    var newLong = ((newAdj * 360) / (2 * Math.PI * Radius * Math.Cos(newLat))) + triangleNodes.NodeA.lng;
+                    var coordinate = new Coordinates { lat = newLat, lng = newLong };
+                    Geofence.Add(coordinate);
+                }
+            }
+            
         }
         
         private double Distance(double lat1, double lon1, double lat2, double lon2, char unit)
@@ -222,7 +299,8 @@ namespace Logic
                         new Coordinates{ lat = coordinate.lat, lng = coordinate.lng}
                     }
                 };
-                NewGeoLocation.AddRange(geoLocations.Where(z => (z.Coordinates.First().lat >= coordinate.lat || z.Coordinates.Last().lat <= coordinate.lat) && (z.Coordinates[0].lng <= coordinate.lng || z.Coordinates[1].lng >= coordinate.lng)));
+                var value = geoLocations.Where(z => (z.Coordinates.First().lat >= coordinate.lat || z.Coordinates.Last().lat <= coordinate.lat) && (z.Coordinates[0].lng <= coordinate.lng || z.Coordinates[1].lng >= coordinate.lng));
+                NewGeoLocation.AddRange(value);
 
             }
 

@@ -8,5 +8,6 @@ namespace Logic
     public interface IReadJson
     {
         List<GeoLocations> LoadJson();
+        bool GeoFenceParameter(List<Coordinates> geofenceCoordinates, Coordinates currentLocation);
     }
 }
