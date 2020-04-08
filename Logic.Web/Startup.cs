@@ -31,13 +31,19 @@ namespace Logic.Web
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc();
             services.AddDbContext<LogicDbContext>(item => item.UseSqlServer(Configuration.GetConnectionString("myconn")));
-
+            services.AddHostedService<Worker>();
             services.AddScoped<IRepository, Repository>();
             services.AddScoped<IStatusService, StatusService>();
             services.AddScoped<IConfigSettingsService, ConfigSettingsService>();
             services.AddScoped<LogicDbContext, LogicDbContext>();
             services.AddScoped<IReadJson, ReadJson>();
             services.AddScoped<ISearchGeolocation, SearchGeolocation>();
+            services.AddCronJob<MyCronJob3>(c =>
+                {
+                    c.TimeZoneInfo = TimeZoneInfo.Local;
+                    c.CronExpression = @"*/1 * * * *";
+                }
+            );
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
